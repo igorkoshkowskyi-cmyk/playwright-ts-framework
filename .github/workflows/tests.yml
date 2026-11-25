@@ -38,6 +38,9 @@ jobs:
         # The app image comes from the expense-tracker-app repo: set the APP_IMAGE repository
         # variable, e.g. ghcr.io/<user>/expense-tracker-app:1.0.0. Its HEALTHCHECK makes the
         # runner wait until the app answers.
+        # The service name is the app's host name. Not "app": .app is an HTTPS-only top-level
+        # domain on Chromium's HSTS preload list, so Chromium would turn http://app:3000 into
+        # https and fail with ERR_SSL_PROTOCOL_ERROR.
         services:
             postgres:
                 image: postgres:16-alpine
@@ -48,7 +51,7 @@ jobs:
                 options: >-
                     --health-cmd "pg_isready -U app -d expenses"
                     --health-interval 2s --health-timeout 3s --health-retries 15
-            app:
+            expense-app:
                 image: ${{ vars.APP_IMAGE }}
                 credentials:
                     username: ${{ github.actor }}
@@ -62,7 +65,7 @@ jobs:
         # the same variables as .env.example; service containers cannot read job env,
         # so the throwaway CI database values are repeated in the services above
         env:
-            BASE_URL: http://app:3000
+            BASE_URL: http://expense-app:3000
             DB_HOST: postgres
             DB_PORT: 5432
             DB_NAME: expenses
@@ -79,7 +82,7 @@ jobs:
             - run: npx playwright test --shard=${{ matrix.shard }}/2
             - name: App logs
               if: failure()
-              run: docker logs "${{ job.services.app.id }}" || true
+              run: docker logs "${{ job.services['expense-app'].id }}" || true
             - uses: actions/upload-artifact@v7
               if: ${{ !cancelled() }}
               with:
