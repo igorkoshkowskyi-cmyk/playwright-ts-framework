@@ -1,7 +1,11 @@
-import type { Locator, Page, Response } from '@playwright/test';
+import { expect, type Locator, type Page, type Response } from '@playwright/test';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+/**
+ * Helpers any page object can use. It holds no locators and no page-specific steps: what a page
+ * has and does lives in its screen class, so each screen can differ freely.
+ */
 export abstract class BasePage {
     protected abstract readonly path: string;
 
@@ -33,5 +37,13 @@ export abstract class BasePage {
             target.click(),
         ]);
         return response;
+    }
+
+    /** Opens a disclosure button unless it is already open. */
+    protected async expand(toggle: Locator): Promise<void> {
+        if ((await toggle.getAttribute('aria-expanded')) !== 'true') {
+            await toggle.click();
+        }
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     }
 }

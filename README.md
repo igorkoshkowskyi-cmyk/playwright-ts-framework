@@ -37,7 +37,7 @@ app/
   PageFactory.ts maps web, tablet and mobile to their page sets
   pages/
     interfaces/  LoginPage, RegisterPage, ExpensesPage: what tests may call
-    base/        shared implementation of each page
+    base/        BasePage: helpers any page can use, no page-specific code
     web/         page objects for 1024 px and wider
     tablet/      page objects for 768 to 1023 px
     mobile/      page objects below 768 px
@@ -130,21 +130,26 @@ Every e2e test runs on three screen types, one project each:
 | `e2e-tablet` | iPad (gen 7)   | WebKit   | `app/pages/tablet/` |
 | `e2e-mobile` | Pixel 7        | Chromium | `app/pages/mobile/` |
 
-The pages are built in three layers:
+The pages are built from two parts:
 
 1. **Interfaces** in `app/pages/interfaces/` say what a test may do on a page: `LoginPage`,
    `RegisterPage`, `ExpensesPage`. Tests only ever see these types.
-2. **Base classes** in `app/pages/base/` implement the interfaces with the shared code: locators
-   and the actions that are the same everywhere.
-3. **Screen classes** in `web/`, `tablet/` and `mobile/` extend the bases and add what differs.
-   Each folder exports its page set from `index.ts`.
+2. **Screen classes** in `web/`, `tablet/` and `mobile/` implement them. Each class is complete on
+   its own: its locators and its steps for that screen. Each folder exports its page set from
+   `index.ts`.
+
+The screen classes share no page code on purpose. This is the Factory Method setup for a page
+that is built differently per screen: different elements, buttons and order of steps. A screen
+can change, or become a separate mobile site, without touching the other two. The price is that
+identical parts, such as the sign-in form, which looks the same everywhere today, are written in
+each class. `BasePage` holds only helpers that any page can use: `open()`, `clickAndWaitForApi()`
+and `expand()` for a disclosure button.
 
 The expenses page really differs by screen. On web the form and the account area are always
 visible and expenses are a table. On a tablet the form opens with "New expense". On a phone
-expenses are cards and the user name and "Sign out" sit behind "Menu". So each screen class
-implements `openForm()`, `openAccountMenu()` and `item()`, which is a table row or a card. Sign-in
-and registration look the same on every screen today, so their screen classes are empty and only
-extend the base: they are the place for screen-specific behaviour when it appears.
+expenses are cards and the user name and "Sign out" sit behind "Menu". So, for example,
+`fillForm()` opens the form first only on tablet and mobile, `signOut()` opens the menu first only
+on mobile, and `item()` is a table row or a card.
 
 `App` is the one page object tests use. It reads the project's `device` option and asks
 `PageFactory` for that screen's page set, so the same spec runs on all three screens without a
