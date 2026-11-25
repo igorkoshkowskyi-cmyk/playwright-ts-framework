@@ -228,7 +228,7 @@ with `page.route`, so nothing there reaches the database:
    app image has a health check, so the runner waits until it answers. The Playwright image
    already has Chromium and WebKit, and its tag must match `@playwright/test` in `package.json`.
 3. **report**: merges the shard blob reports into one HTML report and builds Allure with history.
-4. **pages**: on `main`, publishes the Allure report to GitHub Pages.
+4. **pages**: on `main`, publishes the Allure report to GitHub Pages, also when tests failed.
 
 `perf.yml` runs the load tests against the same two containers, on a weekly schedule or by hand
 with a profile to choose.
@@ -288,3 +288,10 @@ Allure report as the functional tests, with measured values as parameters.
   when it creates the data, so run `npm run env:down` and `npm run env:up` after changing it.
 - **Allure history for load results.** Allure 3 builds the history id from the name and the
   parameters. Measured values change every run, so they are marked `excluded`.
+- **A service named `app` breaks Chromium.** In CI the app's host name is its service name.
+  `.app` is an HTTPS-only top-level domain on Chromium's HSTS preload list, so Chromium turned
+  `http://app:3000` into https and failed with `ERR_SSL_PROTOCOL_ERROR`, while API tests and the
+  local run (`localhost`) passed. The service is called `expense-app`.
+- **`beforeEach` runs before the test's own fixtures.** A spec that opens the page in
+  `beforeEach` requests the `expense` fixture there too; requested only by the test, the expense
+  would be created after the page had loaded and never be shown.

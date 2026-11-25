@@ -150,7 +150,11 @@ jobs:
     pages:
         name: Publish Allure report
         needs: report
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # Also after failed tests: a red run is when the report is needed most. With !cancelled()
+        # the default "all needed jobs succeeded" check is off, so the report job is checked here.
+        if: >-
+            ${{ !cancelled() && needs.report.result == 'success'
+            && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         runs-on: ubuntu-latest
         permissions:
             pages: write
