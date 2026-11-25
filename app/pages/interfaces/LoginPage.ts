@@ -9,6 +9,9 @@ export interface LoginPage {
 
     open(): Promise<void>;
 
-    /** Submits the form and returns the API answer: the test decides what success means. */
+    /** Types the credentials without submitting: for checks of what the form itself does. */
+    fill(email: string, password: string): Promise<void>;
+
+    /** Fills and submits the form, returns the API answer: the test decides what success means. */
     signIn(email: string, password: string): Promise<Response>;
 }

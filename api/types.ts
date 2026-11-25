@@ -32,3 +32,12 @@ export interface ExpenseList {
     items: Expense[];
     totalCents: number;
 }
+
+/** The one error shape of the whole API; `field` names the invalid input when there is one. */
+export interface ApiErrorBody {
+    error: {
+        code: string;
+        message: string;
+        field?: string;
+    };
+}

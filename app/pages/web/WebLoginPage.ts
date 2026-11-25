@@ -18,9 +18,13 @@ export class WebLoginPage extends BasePage implements LoginPage {
         this.error = page.getByRole('alert');
     }
 
-    async signIn(email: string, password: string): Promise<Response> {
+    async fill(email: string, password: string): Promise<void> {
         await this.email.fill(email);
         await this.password.fill(password);
+    }
+
+    async signIn(email: string, password: string): Promise<Response> {
+        await this.fill(email, password);
         return this.clickAndWaitForApi(this.submit, 'POST', '/api/auth/login');
     }
 }

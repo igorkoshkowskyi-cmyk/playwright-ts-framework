@@ -35,6 +35,13 @@ export default defineConfig([
     {
         files: ['tests/**/*.ts'],
         extends: [playwright.configs['flat/recommended']],
+        rules: {
+            // the async custom matcher from fixtures/expect.ts must be awaited like built-in ones
+            'playwright/missing-playwright-await': [
+                'error',
+                { customMatchers: ['toFailWithApiError'] },
+            ],
+        },
     },
     prettier,
 ]);

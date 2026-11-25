@@ -63,18 +63,18 @@ test.describe('Expenses API', () => {
         await test.step('delete the expense', () => api.expenses.delete(expense.id));
 
         await test.step('the expense is gone from the API and the database', async () => {
-            await expect(api.expenses.getById(expense.id)).rejects.toMatchObject({ status: 404 });
+            await expect(api.expenses.getById(expense.id)).toFailWithApiError(404, 'not_found');
             const row = await db.expenses.findById(expense.id);
             expect(row).toBeUndefined();
         });
     });
 
     test('create rejects a non-positive amount', async ({ api }) => {
-        await expect(api.expenses.create(buildExpense({ amountCents: 0 }))).rejects.toMatchObject({
-            status: 400,
-            code: 'validation',
-            field: 'amountCents',
-        });
+        await expect(api.expenses.create(buildExpense({ amountCents: 0 }))).toFailWithApiError(
+            400,
+            'validation',
+            'amountCents'
+        );
     });
 
     test('another user cannot read the expense', async ({ anonApi, db, cleanup, expense }) => {
@@ -86,9 +86,7 @@ test.describe('Expenses API', () => {
         });
 
         await test.step('the other user gets 404 for the expense', async () => {
-            await expect(anonApi.expenses.getById(expense.id)).rejects.toMatchObject({
-                status: 404,
-            });
+            await expect(anonApi.expenses.getById(expense.id)).toFailWithApiError(404, 'not_found');
         });
     });
 });

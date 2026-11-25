@@ -10,28 +10,32 @@ Docker Compose locally and service containers in CI start that image next to a f
 
 ## What is inside
 
-| Topic                                   | Where                                                                                                                                        |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| E2E tests                               | [`tests/e2e/`](tests/e2e/)                                                                                                                   |
-| API tests                               | [`tests/api/`](tests/api/)                                                                                                                   |
-| Auth via `storageState` for E2E and API | [`tests/auth.setup.ts`](tests/auth.setup.ts), [`fixtures/accounts.ts`](fixtures/accounts.ts)                                                 |
-| API fixtures                            | [`fixtures/api.ts`](fixtures/api.ts)                                                                                                         |
-| API container                           | [`api/ApiClient.ts`](api/ApiClient.ts) over [`api/BaseApiService.ts`](api/BaseApiService.ts)                                                 |
-| Page container                          | [`app/App.ts`](app/App.ts): picks the screen type of the running project                                                                     |
-| PageFactory, page objects per screen    | [`app/PageFactory.ts`](app/PageFactory.ts), folders [`web/`](app/pages/web/), [`tablet/`](app/pages/tablet/), [`mobile/`](app/pages/mobile/) |
-| Page interfaces                         | [`app/pages/interfaces/`](app/pages/interfaces/)                                                                                             |
-| Database checks                         | [`db/Db.ts`](db/Db.ts) container over [`db/tables/`](db/tables/), used in API and E2E specs                                                  |
-| Teardown: LIFO, non-fatal               | `cleanup` fixture in [`fixtures/api.ts`](fixtures/api.ts)                                                                                    |
-| Project dependencies                    | [`playwright.config.ts`](playwright.config.ts): `setup` runs before `api` and the three `e2e-*` projects                                     |
-| Accounts for 4 workers x 2 shards       | [`data/accounts.json`](data/accounts.json)                                                                                                   |
-| CI                                      | [`.github/workflows/tests.yml`](.github/workflows/tests.yml), [`.github/workflows/perf.yml`](.github/workflows/perf.yml)                     |
-| Load tests: sign-up and sign-in         | [`perf/auth.ts`](perf/auth.ts)                                                                                                               |
-| Request interception and mocks          | [`tests/e2e/expenses-mocked.spec.ts`](tests/e2e/expenses-mocked.spec.ts)                                                                     |
+| Topic                                   | Where                                                                                                                                                             |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E2E tests                               | [`tests/e2e/`](tests/e2e/)                                                                                                                                        |
+| API tests                               | [`tests/api/`](tests/api/)                                                                                                                                        |
+| Auth via `storageState` for E2E and API | [`tests/auth.setup.ts`](tests/auth.setup.ts), [`fixtures/accounts.ts`](fixtures/accounts.ts)                                                                      |
+| API fixtures                            | [`fixtures/api.ts`](fixtures/api.ts)                                                                                                                              |
+| API container                           | [`api/ApiClient.ts`](api/ApiClient.ts) over [`api/BaseApiService.ts`](api/BaseApiService.ts)                                                                      |
+| Page container                          | [`app/App.ts`](app/App.ts): picks the screen type of the running project                                                                                          |
+| PageFactory, page objects per screen    | [`app/PageFactory.ts`](app/PageFactory.ts), folders [`web/`](app/pages/web/), [`tablet/`](app/pages/tablet/), [`mobile/`](app/pages/mobile/)                      |
+| Page interfaces                         | [`app/pages/interfaces/`](app/pages/interfaces/)                                                                                                                  |
+| Database checks                         | [`db/Db.ts`](db/Db.ts) container over [`db/tables/`](db/tables/), used in API and E2E specs                                                                       |
+| Teardown: LIFO, non-fatal               | `cleanup` fixture in [`fixtures/api.ts`](fixtures/api.ts)                                                                                                         |
+| Project dependencies                    | [`playwright.config.ts`](playwright.config.ts): `setup` runs before `api` and the three `e2e-*` projects                                                          |
+| Accounts for 4 workers x 2 shards       | [`data/accounts.json`](data/accounts.json)                                                                                                                        |
+| CI                                      | [`.github/workflows/tests.yml`](.github/workflows/tests.yml), [`.github/workflows/perf.yml`](.github/workflows/perf.yml)                                          |
+| Load tests: sign-up and sign-in         | [`perf/auth.ts`](perf/auth.ts)                                                                                                                                    |
+| Request interception and mocks          | [`tests/e2e/expenses-mocked.spec.ts`](tests/e2e/expenses-mocked.spec.ts)                                                                                          |
+| Contract checks with JSON Schema        | [`api/schemas.ts`](api/schemas.ts), [`tests/api/contract.api.spec.ts`](tests/api/contract.api.spec.ts)                                                            |
+| Custom matchers (`expect.extend`)       | [`fixtures/expect.ts`](fixtures/expect.ts): `toMatchSchema`, `toFailWithApiError`                                                                                 |
+| Data-driven tests                       | tables in [`data/cases/`](data/cases/), used by [`tests/api/auth.api.spec.ts`](tests/api/auth.api.spec.ts) and [`tests/e2e/auth.spec.ts`](tests/e2e/auth.spec.ts) |
 
 ## Structure
 
 ```
-api/             typed API layer: ApiClient container, BaseApiService, services, ApiError
+api/             typed API layer: ApiClient container, BaseApiService, services, ApiError,
+                 types.ts and the JSON Schemas of the answers in schemas.ts
 app/
   App.ts         page container: the pages of the running project's screen type
   PageFactory.ts maps web, tablet and mobile to their page sets
@@ -42,10 +46,13 @@ app/
     tablet/      page objects for 768 to 1023 px
     mobile/      page objects below 768 px
 data/            test accounts and data builders
+  cases/         tables of data-driven tests, one file per topic: signIn, registration,
+                 protectedCalls
 db/
   Db.ts          database container: connection pool and one helper per table
   tables/        UsersTable, ExpensesTable: queries for checks and cleanup
-fixtures/        accounts, api, db, cleanup and app fixtures, merged in fixtures/index.ts
+fixtures/        accounts, api, db, cleanup and app fixtures, merged in fixtures/index.ts,
+                 and expect.ts with the custom matchers
 perf/            k6 load tests in TypeScript and their reporting
 docker-compose.yml  the test environment: the app image and its PostgreSQL
 tests/
@@ -170,15 +177,60 @@ other two tags with `grepInvert`, so they run only where they apply and never sh
 
 Tests never build URLs or parse JSON. `ApiClient` exposes typed services, `BaseApiService` gives
 CRUD for a REST resource, and `unwrap()` returns the typed body or throws `ApiError` with `status`,
-`code` and `field`. Negative tests assert on those fields:
+`code`, `field` and the raw error body.
+
+### Contract checks and custom matchers
+
+`api/schemas.ts` describes every answer as a JSON Schema: the user, the expense, the list and the
+common error body. Each schema is typed with ajv's `JSONSchemaType<T>`, so it cannot drift from the
+TypeScript type: a field added to one and not the other fails to compile. `additionalProperties:
+false` makes an unexpected field fail, so a leaked password hash would be caught.
+
+`fixtures/expect.ts` extends Playwright's `expect` with two matchers, and specs get that `expect`
+from `fixtures/index.ts`:
 
 ```ts
-await expect(api.expenses.create(buildExpense({ amountCents: 0 }))).rejects.toMatchObject({
-    status: 400,
-    code: 'validation',
-    field: 'amountCents',
-});
+expect(expense).toMatchSchema(expenseSchema);
+await expect(api.auth.register(user)).toFailWithApiError(400, 'validation', 'email');
 ```
+
+- `toMatchSchema` validates with ajv and lists every mismatch, such as
+  `value/amountCents must be integer`.
+- `toFailWithApiError` awaits the call and checks the status, the error code and, when given, the
+  invalid field. It also checks the error body against the error schema, so every negative test
+  checks the error contract along the way. It says what happened instead: another error, a
+  successful call, or a broken error body. ESLint makes sure it is awaited
+  (`customMatchers` of `playwright/missing-playwright-await`).
+
+`tests/api/contract.api.spec.ts` holds one contract check per endpoint.
+
+### Data-driven tests
+
+A table of cases becomes one test per row, so the report names the exact case that failed. The
+tables live in `data/cases/`, one file per topic, and the specs only loop over them:
+
+```ts
+for (const { name, credentials } of WRONG_CREDENTIALS) {
+    test(`${name} shows an error and creates no session`, async ({ app, account, context }) => {
+        const { email, password } = credentials(account);
+        ...
+    });
+}
+```
+
+- **Sign-in**, `data/cases/signIn.ts`, in the API and the e2e specs: an unknown email, a wrong password, both wrong, and empty
+  email, password or both. Rows build their values from the worker's real account, so only the
+  intended part is wrong. The API answers every row with the same `401 invalid_credentials`, so it
+  never tells which part was wrong. On the page the wrong pairs reach the server and show its
+  error, while the form itself stops the empty ones: the `apiCalls` fixture records the page's API
+  requests and proves no sign-in request was sent.
+- **Registration**, boundary values in `data/cases/registration.ts`: an empty name, a name of 51
+  characters, an email without `@`, a password of 7 characters. Each must fail on its own field,
+  and the database must have no such user.
+- **Protected endpoints**, `data/cases/protectedCalls.ts`: every endpoint behind the session,
+  called without one, must answer `401 unauthorized`. The `:id` calls target a real expense of the
+  worker's account, so the 401 proves the session check rather than a missing record, and the test
+  then confirms the rejected call changed and deleted nothing.
 
 ### Database checks
 
@@ -221,7 +273,7 @@ with `page.route`, so nothing there reaches the database:
 
 - a 500 on save: the error message appears and the form keeps its values;
 - an empty list: the empty state appears;
-- an invalid amount: the page sends no request at all.
+- an invalid amount: the page sends no request at all, which the `apiCalls` fixture shows.
 
 ## CI on GitHub Actions
 

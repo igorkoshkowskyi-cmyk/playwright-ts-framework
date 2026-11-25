@@ -1,4 +1,7 @@
 import { buildUser } from '../../data/builders';
+import { PROTECTED_CALLS } from '../../data/cases/protectedCalls';
+import { INVALID_REGISTRATIONS } from '../../data/cases/registration';
+import { EMPTY_CREDENTIALS, WRONG_CREDENTIALS } from '../../data/cases/signIn';
 import { expect, test } from '../../fixtures';
 
 test.describe('Auth API', () => {
@@ -28,46 +31,46 @@ test.describe('Auth API', () => {
     });
 
     test('register rejects an email that is already taken', async ({ anonApi, account }) => {
-        await expect(anonApi.auth.register(account)).rejects.toMatchObject({
-            status: 409,
-            code: 'email_taken',
-        });
+        await expect(anonApi.auth.register(account)).toFailWithApiError(
+            409,
+            'email_taken',
+            'email'
+        );
     });
 
-    test('login rejects a wrong password', async ({ anonApi, account }) => {
-        await expect(
-            anonApi.auth.login({ email: account.email, password: 'wrong-password' })
-        ).rejects.toMatchObject({ status: 401, code: 'invalid_credentials' });
-    });
+    // data-driven: one test per row, each names the field the API must reject
+    for (const { name, input, field } of INVALID_REGISTRATIONS) {
+        test(`register rejects ${name}`, async ({ anonApi, db, cleanup }) => {
+            const user = buildUser(input);
+            // only matters if the API wrongly accepts the input: the user must not stay behind
+            cleanup.add(() => db.users.deleteByEmail(user.email));
 
-    test('login sets an HttpOnly session cookie', async ({ playwright, account }) => {
-        // raw context without a session: this test is about headers the service layer hides
-        const request = await playwright.request.newContext({
-            storageState: { cookies: [], origins: [] },
+            await expect(anonApi.auth.register(user)).toFailWithApiError(400, 'validation', field);
+
+            const row = await db.users.findByEmail(user.email);
+            expect(row).toBeUndefined();
         });
+    }
 
-        const response = await test.step('sign in with a raw request', async () => {
-            const answer = await request.post('/api/auth/login', {
-                data: { email: account.email, password: account.password },
-            });
-            await expect(answer).toBeOK();
-            return answer;
+    // data-driven: every wrong or empty pair gets the same answer, so the API never tells
+    // which part was wrong and cannot be used to find registered emails
+    for (const { name, credentials } of [...WRONG_CREDENTIALS, ...EMPTY_CREDENTIALS]) {
+        test(`login rejects ${name}`, async ({ anonApi, account }) => {
+            await expect(anonApi.auth.login(credentials(account))).toFailWithApiError(
+                401,
+                'invalid_credentials'
+            );
         });
+    }
 
-        await test.step('the session cookie is HttpOnly and SameSite=Lax', async () => {
-            const cookie = response.headers()['set-cookie'] ?? '';
-            expect(cookie).toContain('sid=');
-            expect(cookie).toContain('HttpOnly');
-            expect(cookie).toContain('SameSite=Lax');
+    // data-driven: one test per protected endpoint, called without a session
+    for (const { endpoint, call } of PROTECTED_CALLS) {
+        test(`${endpoint} requires a session`, async ({ anonApi, api, expense }) => {
+            await expect(call(anonApi, expense)).toFailWithApiError(401, 'unauthorized');
+
+            // a rejected call must not have changed or deleted anything on the way
+            const stored = await api.expenses.getById(expense.id);
+            expect(stored).toEqual(expense);
         });
-
-        await request.dispose();
-    });
-
-    test('profile requires a session', async ({ anonApi }) => {
-        await expect(anonApi.auth.currentUser()).rejects.toMatchObject({
-            status: 401,
-            code: 'unauthorized',
-        });
-    });
+    }
 });

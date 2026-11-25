@@ -36,6 +36,8 @@
         "@types/k6": "^2.4.0",
         "@types/node": "^22.20.7",
         "@types/pg": "^8.23.1",
+        "ajv": "^8.20.0",
+        "ajv-formats": "^3.0.1",
         "allure": "^3.33.0",
         "allure-playwright": "^3.15.0",
         "eslint": "^9.39.5",

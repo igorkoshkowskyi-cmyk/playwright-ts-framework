@@ -44,13 +44,7 @@ test.describe('Expenses: mocked backend', () => {
         await expect(app.expensesPage.total).toHaveText('0.00');
     });
 
-    test('does not call the API when the amount is invalid', async ({ app, page }) => {
-        const creates: string[] = [];
-        page.on('request', (request) => {
-            if (request.url().endsWith('/api/expenses') && request.method() === 'POST') {
-                creates.push(request.url());
-            }
-        });
+    test('does not call the API when the amount is invalid', async ({ app, apiCalls }) => {
         await app.expensesPage.open();
 
         await test.step('submit the form with a zero amount', async () => {
@@ -60,7 +54,7 @@ test.describe('Expenses: mocked backend', () => {
 
         await test.step('an error is shown and no request is sent', async () => {
             await expect(app.expensesPage.error).toHaveText('Enter an amount greater than 0');
-            expect(creates).toEqual([]);
+            expect(apiCalls).not.toContain('POST /api/expenses');
         });
     });
 });
