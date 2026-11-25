@@ -10,9 +10,10 @@ setup('register test accounts and save their sessions', async ({ playwright, bas
     const probe = await playwright.request.newContext();
     const health = await probe.get('/health').catch(() => undefined);
     await probe.dispose();
-    if (!health?.ok()) {
-        throw new Error(`The app is not reachable at ${baseURL}. Start it with "npm run env:up".`);
-    }
+    expect(
+        health?.ok(),
+        `The app is not reachable at ${baseURL}. Start it with "npm run env:up".`
+    ).toBe(true);
 
     for (const account of ACCOUNTS) {
         const request = await playwright.request.newContext();
