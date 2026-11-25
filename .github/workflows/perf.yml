@@ -1,0 +1,79 @@
+name: Load tests
+
+# Not on every push: load runs on a schedule or by hand, against a database of its own.
+on:
+    schedule:
+        - cron: '0 3 * * 1' # Mondays 03:00 UTC, smoke profile
+    workflow_dispatch:
+        inputs:
+            profile:
+                description: k6 profile from perf/auth.ts
+                type: choice
+                options: [smoke, load]
+                default: smoke
+
+jobs:
+    k6:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: read
+        # the app from its published image (APP_IMAGE repository variable) and its database
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_DB: expenses
+                    POSTGRES_USER: app
+                    POSTGRES_PASSWORD: app
+                options: >-
+                    --health-cmd "pg_isready -U app -d expenses"
+                    --health-interval 2s --health-timeout 3s --health-retries 15
+            app:
+                image: ${{ vars.APP_IMAGE }}
+                credentials:
+                    username: ${{ github.actor }}
+                    password: ${{ secrets.GITHUB_TOKEN }}
+                env:
+                    DATABASE_URL: postgres://app:app@postgres:5432/expenses
+                ports:
+                    - 3000:3000
+        env:
+            K6_VERSION: v2.4.0
+            PROFILE: ${{ inputs.profile || 'smoke' }}
+            BASE_URL: http://localhost:3000
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 22
+                  cache: npm
+            # only for the Allure report at the end
+            - run: npm ci
+            - name: Install k6
+              run: |
+                  curl -sSL "https://github.com/grafana/k6/releases/download/${K6_VERSION}/k6-${K6_VERSION}-linux-amd64.tar.gz" \
+                    | tar xz -C "$RUNNER_TEMP"
+                  echo "$RUNNER_TEMP/k6-${K6_VERSION}-linux-amd64" >> "$GITHUB_PATH"
+            - name: Run k6
+              env:
+                  K6_WEB_DASHBOARD: 'true'
+                  K6_WEB_DASHBOARD_EXPORT: perf-report.html
+              run: |
+                  mkdir -p allure-results
+                  k6 run -e PROFILE="$PROFILE" -e BASE_URL="$BASE_URL" perf/auth.ts
+            # thresholds become Allure tests (perf/lib/summary.ts); runs even when k6 failed them
+            - name: Allure report
+              if: ${{ !cancelled() }}
+              run: npx allure generate allure-results
+            - name: App logs
+              if: failure()
+              run: docker logs "${{ job.services.app.id }}" || true
+            - uses: actions/upload-artifact@v7
+              if: ${{ !cancelled() }}
+              with:
+                  name: perf-${{ env.PROFILE }}
+                  path: |
+                      perf-report.html
+                      allure-report
+                  retention-days: 14

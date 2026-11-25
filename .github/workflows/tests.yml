@@ -1,0 +1,160 @@
+name: Tests
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: tests-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    check:
+        name: Typecheck, lint, format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 22
+                  cache: npm
+            - run: npm ci
+            - run: npm run check
+
+    test:
+        name: Playwright shard ${{ matrix.shard }}/2
+        needs: check
+        runs-on: ubuntu-latest
+        # Browsers come with the image; its tag must match @playwright/test in package.json.
+        container:
+            image: mcr.microsoft.com/playwright:v1.64.1-noble
+            options: --user 1001
+        permissions:
+            contents: read
+            packages: read
+        # Every shard gets its own app and its own empty database, so shards never share data.
+        # The app image comes from the expense-tracker-app repo: set the APP_IMAGE repository
+        # variable, e.g. ghcr.io/<user>/expense-tracker-app:1.0.0. Its HEALTHCHECK makes the
+        # runner wait until the app answers.
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_DB: expenses
+                    POSTGRES_USER: app
+                    POSTGRES_PASSWORD: app
+                options: >-
+                    --health-cmd "pg_isready -U app -d expenses"
+                    --health-interval 2s --health-timeout 3s --health-retries 15
+            app:
+                image: ${{ vars.APP_IMAGE }}
+                credentials:
+                    username: ${{ github.actor }}
+                    password: ${{ secrets.GITHUB_TOKEN }}
+                env:
+                    DATABASE_URL: postgres://app:app@postgres:5432/expenses
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2]
+        # the same variables as .env.example; service containers cannot read job env,
+        # so the throwaway CI database values are repeated in the services above
+        env:
+            BASE_URL: http://app:3000
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_NAME: expenses
+            DB_USER: app
+            DB_PASSWORD: app
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/cache@v6
+              with:
+                  path: ~/.npm
+                  key: npm-${{ hashFiles('package-lock.json') }}
+            - run: npm ci
+            # 4 workers per shard x 2 shards = 8 accounts from data/accounts.json
+            - run: npx playwright test --shard=${{ matrix.shard }}/2
+            - name: App logs
+              if: failure()
+              run: docker logs "${{ job.services.app.id }}" || true
+            - uses: actions/upload-artifact@v7
+              if: ${{ !cancelled() }}
+              with:
+                  name: blob-report-${{ matrix.shard }}
+                  path: blob-report
+                  retention-days: 7
+            - uses: actions/upload-artifact@v7
+              if: ${{ !cancelled() }}
+              with:
+                  name: allure-results-${{ matrix.shard }}
+                  path: allure-results
+                  retention-days: 7
+
+    report:
+        name: Merge reports
+        needs: test
+        if: ${{ !cancelled() }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 22
+                  cache: npm
+            - run: npm ci
+
+            - name: Merge the shard blob reports into one HTML report
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: blob-report-*
+                  path: all-blob-reports
+                  merge-multiple: true
+            - run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+            - name: Collect Allure results from both shards
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: allure-results-*
+                  path: allure-results
+                  merge-multiple: true
+            # history file from the previous run, so Allure can show trends
+            - uses: actions/cache@v6
+              with:
+                  path: allure-history.jsonl
+                  key: allure-history-${{ github.run_id }}
+                  restore-keys: allure-history-
+            - run: npx allure generate allure-results
+
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: playwright-report
+                  path: playwright-report
+                  retention-days: 14
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: allure-report
+                  path: allure-report
+                  retention-days: 14
+            - name: Prepare the Allure report for GitHub Pages
+              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+              uses: actions/upload-pages-artifact@v5
+              with:
+                  path: allure-report
+
+    pages:
+        name: Publish Allure report
+        needs: report
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        runs-on: ubuntu-latest
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - id: deployment
+              uses: actions/deploy-pages@v5

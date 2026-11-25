@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Worker One",
+        "email": "worker1@example.test",
+        "password": "Worker-1-Passw0rd"
+    },
+    {
+        "name": "Worker Two",
+        "email": "worker2@example.test",
+        "password": "Worker-2-Passw0rd"
+    },
+    {
+        "name": "Worker Three",
+        "email": "worker3@example.test",
+        "password": "Worker-3-Passw0rd"
+    },
+    {
+        "name": "Worker Four",
+        "email": "worker4@example.test",
+        "password": "Worker-4-Passw0rd"
+    },
+    {
+        "name": "Worker Five",
+        "email": "worker5@example.test",
+        "password": "Worker-5-Passw0rd"
+    },
+    {
+        "name": "Worker Six",
+        "email": "worker6@example.test",
+        "password": "Worker-6-Passw0rd"
+    },
+    {
+        "name": "Worker Seven",
+        "email": "worker7@example.test",
+        "password": "Worker-7-Passw0rd"
+    },
+    {
+        "name": "Worker Eight",
+        "email": "worker8@example.test",
+        "password": "Worker-8-Passw0rd"
+    }
+]

@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "noEmit": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": ["node"]
+    },
+    "include": [
+        "api/**/*.ts",
+        "app/**/*.ts",
+
+        "data/**/*.ts",
+        "data/**/*.json",
+        "db/**/*.ts",
+        "fixtures/**/*.ts",
+        "tests/**/*.ts",
+        "utils/**/*.ts",
+        "playwright.config.ts"
+    ],
+    "exclude": ["node_modules", "perf"]
+}

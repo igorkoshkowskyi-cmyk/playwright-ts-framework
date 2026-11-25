@@ -1,0 +1,28 @@
+# The environment the tests run against: the app under test from its published image, and its
+# database. Every value comes from .env (see .env.example); the app lives in its own repository.
+# The database port is published too, because the tests check stored data directly.
+services:
+    db:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env}
+            POSTGRES_USER: ${DB_USER:?Set DB_USER in .env}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+        ports:
+            - '${DB_PORT:?Set DB_PORT in .env}:5432'
+        healthcheck:
+            # $$ reads the variable inside the container, not from .env
+            test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+            interval: 2s
+            timeout: 3s
+            retries: 15
+    app:
+        image: ${APP_IMAGE:?Set APP_IMAGE in .env}
+        environment:
+            # inside the compose network the database is "db" on its own port 5432
+            DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+        ports:
+            - '3000:3000'
+        depends_on:
+            db:
+                condition: service_healthy

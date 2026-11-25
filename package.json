@@ -1,0 +1,52 @@
+{
+    "name": "playwright-ts-framework",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Playwright + TypeScript test automation framework: API and E2E tests on three screen sizes, DB checks, mocks, sharded GitHub Actions, k6 load tests",
+    "type": "commonjs",
+    "engines": {
+        "node": ">=22.22.1"
+    },
+    "scripts": {
+        "prepare": "husky",
+        "env:up": "docker compose up -d --wait",
+        "env:down": "docker compose down -v",
+        "test": "playwright test",
+        "test:api": "playwright test --project=api",
+        "test:e2e": "playwright test --project=e2e-web --project=e2e-tablet --project=e2e-mobile",
+        "test:web": "playwright test --project=e2e-web",
+        "test:tablet": "playwright test --project=e2e-tablet",
+        "test:mobile": "playwright test --project=e2e-mobile",
+        "report": "playwright show-report",
+        "allure": "allure generate allure-results && allure open",
+        "perf:smoke": "k6 run -e PROFILE=smoke perf/auth.ts",
+        "perf:load": "k6 run -e PROFILE=load perf/auth.ts",
+        "typecheck": "tsc --noEmit && tsc --noEmit -p perf",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "check": "npm run typecheck && npm run lint && npm run format:check"
+    },
+    "lint-staged": {
+        "*": "prettier --write --ignore-unknown"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "@playwright/test": "1.64.1",
+        "@types/k6": "^2.4.0",
+        "@types/node": "^22.20.7",
+        "@types/pg": "^8.23.1",
+        "allure": "^3.33.0",
+        "allure-playwright": "^3.15.0",
+        "eslint": "^9.39.5",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-playwright": "^2.12.2",
+        "globals": "^17.14.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^17.6.2",
+        "pg": "^8.23.1",
+        "prettier": "^3.10.1",
+        "typescript": "~5.9.3",
+        "typescript-eslint": "^8.74.0"
+    }
+}
