@@ -14,10 +14,7 @@ export class App {
     readonly registerPage: RegisterPage;
     readonly expensesPage: ExpensesPage;
 
-    constructor(
-        readonly page: Page,
-        readonly device: Device
-    ) {
+    constructor(page: Page, device: Device) {
         const pages = new PageFactory(page, device);
         this.loginPage = pages.loginPage();
         this.registerPage = pages.registerPage();

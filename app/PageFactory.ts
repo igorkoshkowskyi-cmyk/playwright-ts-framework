@@ -23,7 +23,7 @@ export class PageFactory {
 
     constructor(
         private readonly page: Page,
-        readonly device: Device
+        device: Device
     ) {
         this.pages = PAGE_SETS[device];
     }

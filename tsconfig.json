@@ -18,7 +18,6 @@
     "include": [
         "api/**/*.ts",
         "app/**/*.ts",
-
         "data/**/*.ts",
         "data/**/*.json",
         "db/**/*.ts",

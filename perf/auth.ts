@@ -4,6 +4,7 @@ import { check } from 'k6';
 import exec from 'k6/execution';
 import http from 'k6/http';
 import type { ConstantArrivalRateScenario, Options } from 'k6/options';
+import type { Credentials } from '../api/types.ts';
 import { allureResults, textReport, type Summary } from './lib/summary.ts';
 
 interface Profile {
@@ -33,11 +34,6 @@ const BASE_URL = __ENV.BASE_URL ?? 'http://localhost:3000';
 const RUN_ID = __ENV.RUN_ID ?? `${Date.now()}`;
 const PASSWORD = 'Load-Test-Passw0rd';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
-
-interface Credentials {
-    email: string;
-    password: string;
-}
 
 /** Starts `rate` iterations of the `exec` function per second, for the whole profile duration. */
 function arrivalRate(exec: string, rate: number): ConstantArrivalRateScenario {
