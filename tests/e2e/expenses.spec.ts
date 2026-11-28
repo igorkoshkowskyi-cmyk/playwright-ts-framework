@@ -9,7 +9,7 @@ test.describe('Expenses', () => {
     // here, not in the tests: a test's own fixtures are set up after beforeEach, so it would be
     // created after the page has loaded and never be shown.
     test.beforeEach(async ({ app, expense }) => {
-        await app.expensesPage.open();
+        await app.expensesPage.openPage();
         await expect(app.expensesPage.item(expense.title)).toBeVisible();
     });
 
@@ -31,7 +31,7 @@ test.describe('Expenses', () => {
         const created = (await response.json()) as Expense;
         cleanup.add(() => api.expenses.delete(created.id));
 
-        await test.step('the page sent JSON with the amount in cents', async () => {
+        await test.step('the page sent JSON with the amount in cents', () => {
             const request = response.request();
             expect(request.headers()['content-type']).toContain('application/json');
             expect(request.postDataJSON()).toEqual({

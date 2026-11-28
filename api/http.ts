@@ -40,7 +40,7 @@ export async function unwrap<T>(response: APIResponse): Promise<T> {
 }
 
 /** Cleanup helper: deleting something that is already gone is fine, any other error is not. */
-export async function ignoreNotFound(action: Promise<unknown>): Promise<void> {
+export async function ignoreNotFound(action: Promise<unknown>) {
     try {
         await action;
     } catch (error) {

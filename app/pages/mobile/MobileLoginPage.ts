@@ -18,13 +18,13 @@ export class MobileLoginPage extends BasePage implements LoginPage {
         this.error = page.getByRole('alert');
     }
 
-    async fill(email: string, password: string): Promise<void> {
+    async fillCredentials(email: string, password: string) {
         await this.email.fill(email);
         await this.password.fill(password);
     }
 
     async signIn(email: string, password: string): Promise<Response> {
-        await this.fill(email, password);
+        await this.fillCredentials(email, password);
         return this.clickAndWaitForApi(this.submit, 'POST', '/api/auth/login');
     }
 }

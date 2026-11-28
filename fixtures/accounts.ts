@@ -23,7 +23,6 @@ export function accountSlot(workerInfo: WorkerInfo): number {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export const test = base.extend<{}, { account: Account }>({
     account: [
-        // eslint-disable-next-line no-empty-pattern
         async ({}, use, workerInfo) => {
             const slot = accountSlot(workerInfo);
             const account = ACCOUNTS[slot];

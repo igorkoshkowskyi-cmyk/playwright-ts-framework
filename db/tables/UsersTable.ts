@@ -20,7 +20,7 @@ export class UsersTable {
     }
 
     /** Users have no delete endpoint, so tests remove the ones they registered here. */
-    async deleteByEmail(email: string): Promise<void> {
+    async deleteByEmail(email: string) {
         await this.pool.query('DELETE FROM users WHERE email = $1', [email.toLowerCase()]);
     }
 }

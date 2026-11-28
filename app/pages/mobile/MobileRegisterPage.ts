@@ -21,14 +21,14 @@ export class MobileRegisterPage extends BasePage implements RegisterPage {
         this.error = page.getByRole('alert');
     }
 
-    async fill(user: RegisterInput): Promise<void> {
+    async fillRegisterData(user: RegisterInput) {
         await this.name.fill(user.name);
         await this.email.fill(user.email);
         await this.password.fill(user.password);
     }
 
     async register(user: RegisterInput): Promise<Response> {
-        await this.fill(user);
+        await this.fillRegisterData(user);
         return this.clickAndWaitForApi(this.submit, 'POST', '/api/auth/register');
     }
 }

@@ -26,7 +26,7 @@ export class Db {
         this.expenses = new ExpensesTable(this.pool);
     }
 
-    async close(): Promise<void> {
+    async close() {
         await this.pool.end();
     }
 }

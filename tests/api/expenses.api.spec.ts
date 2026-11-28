@@ -16,7 +16,7 @@ test.describe('Expenses API', () => {
             return expense;
         });
 
-        await test.step('the answer has the input, an id and a creation time', async () => {
+        await test.step('the answer has the input, an id and a creation time', () => {
             expect(created).toEqual({
                 ...input,
                 id: expect.any(Number),

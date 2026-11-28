@@ -16,8 +16,8 @@ export class AuthApi {
         );
     }
 
-    async logout(): Promise<void> {
-        await unwrap<void>(await this.request.post('/api/auth/logout'));
+    async logout() {
+        await unwrap(await this.request.post('/api/auth/logout'));
     }
 
     async currentUser(): Promise<User> {
@@ -25,7 +25,7 @@ export class AuthApi {
     }
 
     /** Find-or-create for test accounts: a taken email means the account already exists. */
-    async ensureRegistered(input: RegisterInput): Promise<void> {
+    async ensureRegistered(input: RegisterInput) {
         try {
             await this.register(input);
         } catch (error) {

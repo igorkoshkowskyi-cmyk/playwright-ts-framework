@@ -11,7 +11,7 @@ export abstract class BasePage {
 
     constructor(readonly page: Page) {}
 
-    async open(): Promise<void> {
+    async openPage() {
         // the forms are plain HTML: no need to wait for images and fonts
         await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
     }
@@ -40,7 +40,7 @@ export abstract class BasePage {
     }
 
     /** Opens a disclosure button unless it is already open. */
-    protected async expand(toggle: Locator): Promise<void> {
+    protected async expand(toggle: Locator) {
         if ((await toggle.getAttribute('aria-expanded')) !== 'true') {
             await toggle.click();
         }

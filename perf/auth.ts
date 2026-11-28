@@ -41,6 +41,7 @@ interface Credentials {
 
 /** Starts `rate` iterations of the `exec` function per second, for the whole profile duration. */
 function arrivalRate(exec: string, rate: number): ConstantArrivalRateScenario {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- @types/k6 declares scenarios as classes, k6 itself takes plain objects
     return {
         executor: 'constant-arrival-rate',
         exec,

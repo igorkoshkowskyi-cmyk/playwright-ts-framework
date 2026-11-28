@@ -49,16 +49,16 @@ export class MobileExpensesPage extends BasePage implements ExpensesPage {
      * Waits for the first list load. Without this guard a fast test can add an expense
      * before the initial list arrives, and the late list render would hide it.
      */
-    override async open(): Promise<void> {
-        await super.open();
+    override async openPage() {
+        await super.openPage();
         await expect(this.list).toHaveAttribute('aria-busy', 'false');
     }
 
-    async openForm(): Promise<void> {
+    async openForm() {
         await this.expand(this.newExpenseToggle);
     }
 
-    async openAccountMenu(): Promise<void> {
+    async openAccountMenu() {
         await this.expand(this.menuToggle);
     }
 
@@ -66,7 +66,7 @@ export class MobileExpensesPage extends BasePage implements ExpensesPage {
         return this.cards.getByRole('listitem').filter({ hasText: title });
     }
 
-    async fillForm(form: ExpenseForm): Promise<void> {
+    async fillForm(form: ExpenseForm) {
         await this.openForm();
         await this.titleInput.fill(form.title);
         await this.amountInput.fill(form.amount);
@@ -85,7 +85,7 @@ export class MobileExpensesPage extends BasePage implements ExpensesPage {
         return this.clickAndWaitForApi(deleteButton, 'DELETE', /^\/api\/expenses\/\d+$/);
     }
 
-    async signOut(): Promise<void> {
+    async signOut() {
         await this.openAccountMenu();
         await this.signOutButton.click();
     }

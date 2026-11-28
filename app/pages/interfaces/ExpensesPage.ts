@@ -29,7 +29,7 @@ export interface ExpensesPage {
     readonly total: Locator;
 
     /** Opens the page and waits until the first list load is rendered. */
-    open(): Promise<void>;
+    openPage(): Promise<void>;
 
     /** Makes the add form usable in this layout. */
     openForm(): Promise<void>;

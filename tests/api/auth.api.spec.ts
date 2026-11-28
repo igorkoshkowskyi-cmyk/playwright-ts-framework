@@ -18,7 +18,7 @@ test.describe('Auth API', () => {
             return created;
         });
 
-        await test.step('the answer has the user without the password', async () => {
+        await test.step('the answer has the user without the password', () => {
             expect(user).toEqual({ id: expect.any(Number), email: input.email, name: input.name });
         });
 

@@ -49,16 +49,16 @@ export class WebExpensesPage extends BasePage implements ExpensesPage {
      * Waits for the first list load. Without this guard a fast test can add an expense
      * before the initial list arrives, and the late list render would hide it.
      */
-    override async open(): Promise<void> {
-        await super.open();
+    override async openPage() {
+        await super.openPage();
         await expect(this.list).toHaveAttribute('aria-busy', 'false');
     }
 
-    async openForm(): Promise<void> {
+    async openForm() {
         // the form is always on this screen
     }
 
-    async openAccountMenu(): Promise<void> {
+    async openAccountMenu() {
         // the account area is always on this screen
     }
 
@@ -66,7 +66,7 @@ export class WebExpensesPage extends BasePage implements ExpensesPage {
         return this.table.getByRole('row').filter({ hasText: title });
     }
 
-    async fillForm(form: ExpenseForm): Promise<void> {
+    async fillForm(form: ExpenseForm) {
         await this.titleInput.fill(form.title);
         await this.amountInput.fill(form.amount);
         await this.categorySelect.selectOption(form.category);
@@ -84,7 +84,7 @@ export class WebExpensesPage extends BasePage implements ExpensesPage {
         return this.clickAndWaitForApi(deleteButton, 'DELETE', /^\/api\/expenses\/\d+$/);
     }
 
-    async signOut(): Promise<void> {
+    async signOut() {
         await this.signOutButton.click();
     }
 }

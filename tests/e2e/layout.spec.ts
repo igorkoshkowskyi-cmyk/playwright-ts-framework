@@ -5,7 +5,7 @@ import { expect, test } from '../../fixtures';
 test.describe('Responsive layout', () => {
     // every test starts on the page with one expense listed, as a row or a card of this layout
     test.beforeEach(async ({ app, expense }) => {
-        await app.expensesPage.open();
+        await app.expensesPage.openPage();
         await expect(app.expensesPage.item(expense.title)).toBeVisible();
     });
 

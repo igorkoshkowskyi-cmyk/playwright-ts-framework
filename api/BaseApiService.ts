@@ -20,7 +20,8 @@ export abstract class BaseApiService<TInput, TEntity extends { id: number }> {
         return unwrap<TEntity>(await this.request.put(`${this.basePath}/${id}`, { data: input }));
     }
 
-    async delete(id: number): Promise<void> {
-        await unwrap<void>(await this.request.delete(`${this.basePath}/${id}`));
+    async delete(id: number) {
+        // 204 No Content: only the status matters, unwrap throws ApiError on anything else
+        await unwrap(await this.request.delete(`${this.basePath}/${id}`));
     }
 }

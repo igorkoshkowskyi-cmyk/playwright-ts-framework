@@ -7,10 +7,10 @@ export interface LoginPage {
     readonly submit: Locator;
     readonly error: Locator;
 
-    open(): Promise<void>;
+    openPage(): Promise<void>;
 
     /** Types the credentials without submitting: for checks of what the form itself does. */
-    fill(email: string, password: string): Promise<void>;
+    fillCredentials(email: string, password: string): Promise<void>;
 
     /** Fills and submits the form, returns the API answer: the test decides what success means. */
     signIn(email: string, password: string): Promise<Response>;

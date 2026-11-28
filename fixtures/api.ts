@@ -26,7 +26,6 @@ interface WorkerFixtures {
 export const test = accountsTest.extend<ApiFixtures, WorkerFixtures>({
     // one connection pool per worker, closed when the worker ends
     db: [
-        // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             const db = new Db({
                 host: requireEnv('DB_HOST'),
@@ -65,11 +64,10 @@ export const test = accountsTest.extend<ApiFixtures, WorkerFixtures>({
         await use(await api.auth.currentUser());
     },
 
-    // Depends on api and db so both are still alive when the undo steps run after the test.
+    // Requests api and db only to depend on them: Playwright tears fixtures down in reverse
+    // order, so both are still alive when the undo steps run after the test.
     // LIFO order deletes children before parents; a failed step is reported, never fatal.
-    cleanup: async ({ api, db }, use, testInfo) => {
-        void api;
-        void db;
+    cleanup: async ({ api: _api, db: _db }, use, testInfo) => {
         const actions: (() => Promise<unknown>)[] = [];
         await use({ add: (action) => actions.push(action) });
         for (const action of actions.reverse()) {

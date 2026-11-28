@@ -105,8 +105,11 @@ npm run check          # typecheck, lint and format check, as CI does
 npm run env:down       # stop the app and the database, drop the data
 ```
 
-`npm ci` also installs a Git pre-commit hook (husky): lint-staged runs Prettier on the staged files,
-so every commit is formatted. The hook only formats; `npm run check` is the full check, as in CI.
+`npm ci` also installs a Git pre-commit hook (husky). lint-staged takes only the staged files: it
+runs `eslint --fix` and then Prettier on TypeScript and `.mjs` files, and Prettier on JSON, Markdown
+and YAML. What ESLint can fix goes into the commit fixed; an error it cannot fix, such as a comment
+that is not in English, stops the commit. The hook does not typecheck the whole project:
+`npm run check` is the full check, as in CI.
 
 ## How it works
 

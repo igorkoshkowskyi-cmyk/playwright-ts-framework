@@ -14,7 +14,7 @@ test.describe('Expenses: mocked backend', () => {
                   })
                 : route.fallback()
         );
-        await app.expensesPage.open();
+        await app.expensesPage.openPage();
         const form = buildExpenseForm();
 
         await test.step('submit the form, the server answers 500', async () => {
@@ -38,14 +38,14 @@ test.describe('Expenses: mocked backend', () => {
                 : route.fallback()
         );
 
-        await app.expensesPage.open();
+        await app.expensesPage.openPage();
 
         await expect(app.expensesPage.emptyState).toBeVisible();
         await expect(app.expensesPage.total).toHaveText('0.00');
     });
 
     test('does not call the API when the amount is invalid', async ({ app, apiCalls }) => {
-        await app.expensesPage.open();
+        await app.expensesPage.openPage();
 
         await test.step('submit the form with a zero amount', async () => {
             await app.expensesPage.fillForm(buildExpenseForm({ amount: '0' }));

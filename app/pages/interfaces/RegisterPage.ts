@@ -9,8 +9,8 @@ export interface RegisterPage {
     readonly submit: Locator;
     readonly error: Locator;
 
-    open(): Promise<void>;
-    fill(user: RegisterInput): Promise<void>;
+    openPage(): Promise<void>;
+    fillRegisterData(user: RegisterInput): Promise<void>;
 
     /** Submits the form and returns the API answer. */
     register(user: RegisterInput): Promise<Response>;

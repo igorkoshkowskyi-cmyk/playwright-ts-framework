@@ -7,7 +7,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Sign in', () => {
     test.beforeEach(async ({ app }) => {
-        await app.loginPage.open();
+        await app.loginPage.openPage();
     });
 
     test('user signs in and lands on their expenses', async ({ app, account, page }) => {
@@ -51,7 +51,7 @@ test.describe('Sign in', () => {
             const { email, password } = credentials(account);
 
             await test.step('submit the form', async () => {
-                await app.loginPage.fill(email, password);
+                await app.loginPage.fillCredentials(email, password);
                 await app.loginPage.submit.click();
             });
 
@@ -65,7 +65,7 @@ test.describe('Sign in', () => {
 
 test.describe('Registration', () => {
     test.beforeEach(async ({ app }) => {
-        await app.registerPage.open();
+        await app.registerPage.openPage();
     });
 
     test('new user registers and is stored in the database', async ({ app, db, cleanup, page }) => {
