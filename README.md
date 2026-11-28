@@ -8,6 +8,24 @@ This repository holds only the tests. The app under test is a separate project, 
 (Express + PostgreSQL), published as a Docker image, the way a product team hands a build to QA.
 Docker Compose locally and service containers in CI start that image next to a fresh database.
 
+## Patterns used
+
+| Pattern                             | Where                                                                                        | What it gives                                                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Page Object                         | [`app/pages/`](app/pages/)                                                                   | the locators and steps of a page live in one class; specs talk to pages, not to selectors                      |
+| Abstract Factory                    | [`app/PageFactory.ts`](app/PageFactory.ts), `PageSet`                                        | one family of page objects per screen (web, tablet, mobile), picked by the project's `device` option           |
+| Programming to an interface         | [`app/pages/interfaces/`](app/pages/interfaces/)                                             | specs depend on page interfaces, never on a screen class, so one spec runs on every screen                     |
+| Facade                              | [`App`](app/App.ts), [`ApiClient`](api/ApiClient.ts), [`Db`](db/Db.ts)                       | one entry point each to the pages, the API services and the database tables                                    |
+| Generic base class                  | [`api/BaseApiService.ts`](api/BaseApiService.ts)                                             | create, read, update and delete for any REST resource from `BaseApiService<TInput, TEntity>`                   |
+| Dependency injection with fixtures  | [`fixtures/`](fixtures/)                                                                     | a test declares what it needs (`api`, `db`, `account`, `expense`), Playwright builds, shares and tears it down |
+| Test data builders                  | [`data/builders.ts`](data/builders.ts)                                                       | valid, unique data by default; a test overrides only what it is about                                          |
+| Data-driven tests                   | [`data/cases/`](data/cases/)                                                                 | a table of cases, one test per row, so the report names the exact case that failed                             |
+| Command: an undo stack for teardown | `cleanup` in [`fixtures/api.ts`](fixtures/api.ts)                                            | each created entity registers its undo step; the steps run in reverse order, and a failed one is never fatal   |
+| Test doubles: stub and spy          | `page.route` in [`expenses-mocked.spec.ts`](tests/e2e/expenses-mocked.spec.ts), `apiCalls`   | answers the real backend cannot easily give; proof that a request was or was not sent                          |
+| Custom matchers                     | [`fixtures/expect.ts`](fixtures/expect.ts)                                                   | domain assertions: `toMatchSchema`, `toFailWithApiError`                                                       |
+| Contract checks with JSON Schema    | [`api/schemas.ts`](api/schemas.ts)                                                           | every answer is held to its schema, and each schema is tied to its TypeScript type                             |
+| Isolation per worker                | [`fixtures/accounts.ts`](fixtures/accounts.ts), [`tests/auth.setup.ts`](tests/auth.setup.ts) | one account and one saved session per worker slot across all shards, so parallel tests never share data        |
+
 ## What is inside
 
 | Topic                                   | Where                                                                                                                                                             |
@@ -148,11 +166,12 @@ The pages are built from two parts:
    its own: its locators and its steps for that screen. Each folder exports its page set from
    `index.ts`.
 
-The screen classes share no page code on purpose. This is the Factory Method setup for a page
-that is built differently per screen: different elements, buttons and order of steps. A screen
+The screen classes share no page code on purpose. This is an Abstract Factory: each screen folder
+is a family of page objects built for that screen, with its own elements, buttons and order of
+steps, and `PageFactory` hands out the family of the running project. A screen
 can change, or become a separate mobile site, without touching the other two. The price is that
 identical parts, such as the sign-in form, which looks the same everywhere today, are written in
-each class. `BasePage` holds only helpers that any page can use: `open()`, `clickAndWaitForApi()`
+each class. `BasePage` holds only helpers that any page can use: `openPage()`, `clickAndWaitForApi()`
 and `expand()` for a disclosure button.
 
 The expenses page really differs by screen. On web the form and the account area are always
