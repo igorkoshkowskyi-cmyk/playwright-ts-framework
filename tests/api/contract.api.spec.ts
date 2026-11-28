@@ -2,7 +2,7 @@ import { expenseListSchema, expenseSchema, userSchema } from '../../api/schemas'
 import { buildExpense, buildUser } from '../../data/builders';
 import { expect, test } from '../../fixtures';
 
-// Contract checks: each answer has exactly the shape of its JSON Schema in api/schemas.ts, with
+// Contract checks: each answer has exactly the shape of its JSON Schema in api/schemas/, with
 // no missing, extra or mistyped field. Error answers are held to the error schema as well: every
 // negative test checks it through toFailWithApiError.
 test.describe('API contract', () => {

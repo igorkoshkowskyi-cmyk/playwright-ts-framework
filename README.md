@@ -23,7 +23,7 @@ Docker Compose locally and service containers in CI start that image next to a f
 | Command: an undo stack for teardown | `cleanup` in [`fixtures/api.ts`](fixtures/api.ts)                                            | each created entity registers its undo step; the steps run in reverse order, and a failed one is never fatal   |
 | Test doubles: stub and spy          | `page.route` in [`expenses-mocked.spec.ts`](tests/e2e/expenses-mocked.spec.ts), `apiCalls`   | answers the real backend cannot easily give; proof that a request was or was not sent                          |
 | Custom matchers                     | [`fixtures/expect.ts`](fixtures/expect.ts)                                                   | domain assertions: `toMatchSchema`, `toFailWithApiError`                                                       |
-| Contract checks with JSON Schema    | [`api/schemas.ts`](api/schemas.ts)                                                           | every answer is held to its schema, and each schema is tied to its TypeScript type                             |
+| Contract checks with JSON Schema    | [`api/schemas/`](api/schemas/)                                                               | every answer is held to its schema, and each schema is tied to its TypeScript type                             |
 | Isolation per worker                | [`fixtures/accounts.ts`](fixtures/accounts.ts), [`tests/auth.setup.ts`](tests/auth.setup.ts) | one account and one saved session per worker slot across all shards, so parallel tests never share data        |
 
 ## What is inside
@@ -45,7 +45,7 @@ Docker Compose locally and service containers in CI start that image next to a f
 | CI                                      | [`.github/workflows/tests.yml`](.github/workflows/tests.yml), [`.github/workflows/perf.yml`](.github/workflows/perf.yml)                                          |
 | Load tests: sign-up and sign-in         | [`perf/auth.ts`](perf/auth.ts)                                                                                                                                    |
 | Request interception and mocks          | [`tests/e2e/expenses-mocked.spec.ts`](tests/e2e/expenses-mocked.spec.ts)                                                                                          |
-| Contract checks with JSON Schema        | [`api/schemas.ts`](api/schemas.ts), [`tests/api/contract.api.spec.ts`](tests/api/contract.api.spec.ts)                                                            |
+| Contract checks with JSON Schema        | [`api/schemas/`](api/schemas/), [`tests/api/contract.api.spec.ts`](tests/api/contract.api.spec.ts)                                                                |
 | Custom matchers (`expect.extend`)       | [`fixtures/expect.ts`](fixtures/expect.ts): `toMatchSchema`, `toFailWithApiError`                                                                                 |
 | Data-driven tests                       | tables in [`data/cases/`](data/cases/), used by [`tests/api/auth.api.spec.ts`](tests/api/auth.api.spec.ts) and [`tests/e2e/auth.spec.ts`](tests/e2e/auth.spec.ts) |
 
@@ -53,7 +53,7 @@ Docker Compose locally and service containers in CI start that image next to a f
 
 ```
 api/             typed API layer: ApiClient container, BaseApiService, services, ApiError,
-                 types.ts and the JSON Schemas of the answers in schemas.ts
+                 types.ts and the JSON Schemas of the answers in schemas/, one file per schema
 app/
   App.ts         page container: the pages of the running project's screen type
   PageFactory.ts maps web, tablet and mobile to their page sets
@@ -221,7 +221,7 @@ CRUD for a REST resource, and `unwrap()` returns the typed body or throws `ApiEr
 
 ### Contract checks and custom matchers
 
-`api/schemas.ts` describes every answer as a JSON Schema: the user, the expense, the list and the
+`api/schemas/` describes every answer as a JSON Schema, one file per schema: the user, the expense, the list and the
 common error body. Each schema is typed with ajv's `JSONSchemaType<T>`, so it cannot drift from the
 TypeScript type: a field added to one and not the other fails to compile. `additionalProperties:
 false` makes an unexpected field fail, so a leaked password hash would be caught.

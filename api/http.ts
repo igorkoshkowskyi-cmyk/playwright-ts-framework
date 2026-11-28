@@ -1,7 +1,7 @@
 import type { APIResponse } from '@playwright/test';
 
 // What can be read safely from any error answer, even one that breaks the contract;
-// the contract itself is ApiErrorBody in types.ts and apiErrorSchema in schemas.ts.
+// the contract itself is ApiErrorBody in types.ts and apiErrorSchema in schemas/apiErrorSchema.ts.
 interface LooseErrorBody {
     error?: { code?: string; message?: string; field?: string };
 }
