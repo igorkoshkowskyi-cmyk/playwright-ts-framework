@@ -391,36 +391,3 @@ docker run --rm -v "$PWD":/work -w /work -e BASE_URL=http://host.docker.internal
 
 At the end each threshold is written as an Allure test result, so load results appear in the same
 Allure report as the functional tests, with measured values as parameters.
-
-## Lessons recorded in the code
-
-- **`toMatchObject` and interfaces.** In Playwright 1.64 the expected value of `toMatchObject` is
-  typed `Record<string, unknown>`. An object literal fits, a variable typed as an interface does
-  not: interfaces have no index signature, so `toMatchObject(input)` with `input: ExpenseInput`
-  does not compile. Where the whole object is known, the specs use exact `toEqual` with
-  `expect.any()`, which is stricter anyway: an unexpected extra field fails the test.
-  `toMatchObject` stays, with a literal, for checks of a part of a database row.
-- **Request contexts inherit `use` options.** Inside a test, `playwright.request.newContext()`
-  receives the project's `use` options: `baseURL`, which is handy, and the worker's
-  `storageState`, which is a trap. An anonymous client must pass an empty state explicitly.
-- **Fixture teardown order.** `cleanup` depends on `api` and `db`, so both are still alive when
-  the undo steps run.
-- **First-load race.** The expenses page marks its list `aria-busy="false"` after the first load,
-  and the page object waits for it. Without that a fast test could add an expense that the late
-  list render then removes.
-- **`.env` is not read by itself.** Docker Compose reads `.env`, Playwright does not.
-  `playwright.config.ts` loads it with Node's built-in `process.loadEnvFile`, so one file serves
-  both, with no `dotenv` dependency.
-- **Database settings as fields, not a URL.** The pool gets host, port, name, user and password
-  separately, so a password with `@` or `/` needs no URL escaping.
-- **Changing `DB_PASSWORD` needs a fresh database.** PostgreSQL applies `POSTGRES_PASSWORD` only
-  when it creates the data, so run `npm run env:down` and `npm run env:up` after changing it.
-- **Allure history for load results.** Allure 3 builds the history id from the name and the
-  parameters. Measured values change every run, so they are marked `excluded`.
-- **A service named `app` breaks Chromium.** In CI the app's host name is its service name.
-  `.app` is an HTTPS-only top-level domain on Chromium's HSTS preload list, so Chromium turned
-  `http://app:3000` into https and failed with `ERR_SSL_PROTOCOL_ERROR`, while API tests and the
-  local run (`localhost`) passed. The service is called `expense-app`.
-- **`beforeEach` runs before the test's own fixtures.** A spec that opens the page in
-  `beforeEach` requests the `expense` fixture there too; requested only by the test, the expense
-  would be created after the page had loaded and never be shown.
