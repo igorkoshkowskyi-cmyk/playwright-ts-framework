@@ -4,7 +4,7 @@ import { expect, test } from '../../fixtures';
 // Front-end behaviour on answers the real backend cannot easily give: page.route replaces them.
 // Nothing here reaches the database, so the real end-to-end flows live in expenses.spec.ts.
 // No beforeEach that opens the page: a mock of the first list load must be set before it.
-test.describe('Expenses: mocked backend', () => {
+test.describe('Expenses: mocked backend', { tag: '@expenses' }, () => {
     test('keeps the form and shows an error when saving fails', async ({ app, page }) => {
         await page.route('**/api/expenses', (route) =>
             route.request().method() === 'POST'

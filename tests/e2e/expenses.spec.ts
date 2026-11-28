@@ -4,7 +4,7 @@ import { expect, test } from '../../fixtures';
 import { formatCents } from '../../utils/money';
 
 // Signed in through storageState: the worker's account session from the setup project.
-test.describe('Expenses', () => {
+test.describe('Expenses', { tag: '@expenses' }, () => {
     // Every test starts on the page with one expense already listed. The expense is requested
     // here, not in the tests: a test's own fixtures are set up after beforeEach, so it would be
     // created after the page has loaded and never be shown.

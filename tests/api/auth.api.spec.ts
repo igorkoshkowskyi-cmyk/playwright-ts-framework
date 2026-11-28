@@ -4,7 +4,7 @@ import { INVALID_REGISTRATIONS } from '../../data/cases/registration';
 import { EMPTY_CREDENTIALS, WRONG_CREDENTIALS } from '../../data/cases/signIn';
 import { expect, test } from '../../fixtures';
 
-test.describe('Auth API', () => {
+test.describe('Auth API: registration', { tag: '@registration' }, () => {
     test('register creates a user and stores only a password hash', async ({
         anonApi,
         db,
@@ -51,7 +51,9 @@ test.describe('Auth API', () => {
             expect(row).toBeUndefined();
         });
     }
+});
 
+test.describe('Auth API: sign-in', { tag: '@login' }, () => {
     // data-driven: every wrong or empty pair gets the same answer, so the API never tells
     // which part was wrong and cannot be used to find registered emails
     for (const { name, credentials } of [...WRONG_CREDENTIALS, ...EMPTY_CREDENTIALS]) {
@@ -62,8 +64,11 @@ test.describe('Auth API', () => {
             );
         });
     }
+});
 
-    // data-driven: one test per protected endpoint, called without a session
+test.describe('Auth API: session required', () => {
+    // data-driven: one test per protected endpoint, called without a session; each row carries
+    // the tag of what its endpoint works with
     for (const { endpoint, call } of PROTECTED_CALLS) {
         test(`${endpoint} requires a session`, async ({ anonApi, api, expense }) => {
             await expect(call(anonApi, expense)).toFailWithApiError(401, 'unauthorized');

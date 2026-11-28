@@ -1,7 +1,7 @@
 import { buildExpense, buildUser } from '../../data/builders';
 import { expect, test } from '../../fixtures';
 
-test.describe('Expenses API', () => {
+test.describe('Expenses API', { tag: '@expenses' }, () => {
     test('create stores the expense for the current user', async ({
         api,
         db,

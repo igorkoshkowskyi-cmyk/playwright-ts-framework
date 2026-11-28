@@ -119,6 +119,8 @@ Other commands:
 npm run test:api       # only API tests
 npm run test:e2e       # browser tests on all three screen types
 npm run test:mobile    # one screen type: test:web, test:tablet, test:mobile
+npx playwright test --grep @expenses           # one area: @login, @registration, @expenses
+npx playwright test --grep "@login|@registration"  # several at once
 npm run check          # typecheck, lint and format check, as CI does
 npm run env:down       # stop the app and the database, drop the data
 ```
@@ -194,6 +196,22 @@ so a new screen type without a complete page set fails to compile.
 
 Screen-specific checks are tagged `@web`, `@tablet` or `@mobile`. Each project filters out the
 other two tags with `grepInvert`, so they run only where they apply and never show up as skipped.
+
+### Tags
+
+Besides the device tags, every test carries the area it works with, so a run can be cut with
+`--grep`, and Allure shows the same tags:
+
+- `@login`: sign-in, and the signed-in user's profile (`GET /api/me`);
+- `@registration`: sign-up;
+- `@expenses`: everything done with expenses, in the API, on the page and with a mocked backend.
+  The expense specs set it once on their `describe`.
+
+The specs write tags as plain strings, the usual Playwright form. The list of allowed tags is in
+`eslint.config.mjs` (`allowedTags` of `playwright/valid-test-tags`), so a misspelled tag fails the
+lint instead of silently dropping a test out of a filtered run. The table of protected endpoints
+keeps each row's tag in a field typed as `'@expenses' | '@login'`, where TypeScript checks it.
+`setup` is a dependency, so it runs with any filter.
 
 ### API layer
 

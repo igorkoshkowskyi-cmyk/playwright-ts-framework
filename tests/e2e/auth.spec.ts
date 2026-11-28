@@ -5,7 +5,7 @@ import { expect, test } from '../../fixtures';
 // these tests are about getting a session, so they start without one
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test.describe('Sign in', () => {
+test.describe('Sign in', { tag: '@login' }, () => {
     test.beforeEach(async ({ app }) => {
         await app.loginPage.openPage();
     });
@@ -63,7 +63,7 @@ test.describe('Sign in', () => {
     }
 });
 
-test.describe('Registration', () => {
+test.describe('Registration', { tag: '@registration' }, () => {
     test.beforeEach(async ({ app }) => {
         await app.registerPage.openPage();
     });

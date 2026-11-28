@@ -99,6 +99,22 @@ export default defineConfig([
                 'error',
                 { customMatchers: ['toFailWithApiError'] },
             ],
+            // The only tags specs may use, so a typo such as @regsitration fails the lint instead
+            // of silently dropping tests out of a --grep run. Device tags are filtered by the e2e
+            // projects in playwright.config.ts, feature and entity tags are for --grep.
+            'playwright/valid-test-tags': [
+                'error',
+                {
+                    allowedTags: [
+                        '@web',
+                        '@tablet',
+                        '@mobile',
+                        '@login',
+                        '@registration',
+                        '@expenses',
+                    ],
+                },
+            ],
         },
     },
 
