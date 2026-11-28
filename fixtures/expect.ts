@@ -40,7 +40,7 @@ function apiErrorMismatch(
     }
     const { error } = outcome;
     if (!(error instanceof ApiError)) {
-        return `The call failed without an API answer: ${String(error)}`;
+        return `The call failed without an API response: ${String(error)}`;
     }
     const fieldMatches = field === undefined || error.field === field;
     if (error.status !== status || error.code !== code || !fieldMatches) {
@@ -52,7 +52,7 @@ function apiErrorMismatch(
         : `The error body breaks the error schema:\n${bodyMismatches}`;
 }
 
-/** Playwright's expect plus matchers for API answers. Specs get it from fixtures/index.ts. */
+/** Playwright's expect plus matchers for API responses. Specs get it from fixtures/index.ts. */
 export const expect = baseExpect.extend({
     /**
      * The value has exactly the shape of the JSON Schema. On failure the message lists every

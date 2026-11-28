@@ -14,6 +14,7 @@ jobs:
     check:
         name: Typecheck, lint, format
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
             - uses: actions/setup-node@v7
@@ -27,6 +28,8 @@ jobs:
         name: Playwright shard ${{ matrix.shard }}/2
         needs: check
         runs-on: ubuntu-latest
+        # a shard takes about two minutes; a hung browser must not hold the runner for hours
+        timeout-minutes: 15
         # Browsers come with the image; its tag must match @playwright/test in package.json.
         container:
             image: mcr.microsoft.com/playwright:v1.64.1-noble
@@ -37,7 +40,7 @@ jobs:
         # Every shard gets its own app and its own empty database, so shards never share data.
         # The app image comes from the expense-tracker-app repo: set the APP_IMAGE repository
         # variable, e.g. ghcr.io/<user>/expense-tracker-app:1.0.0. Its HEALTHCHECK makes the
-        # runner wait until the app answers.
+        # runner wait until the app responds.
         # The service name is the app's host name. Not "app": .app is an HTTPS-only top-level
         # domain on Chromium's HSTS preload list, so Chromium would turn http://app:3000 into
         # https and fail with ERR_SSL_PROTOCOL_ERROR.
@@ -99,8 +102,11 @@ jobs:
     report:
         name: Merge reports
         needs: test
-        if: ${{ !cancelled() }}
+        # Also after failed tests, but not when the test job never ran (the check job failed):
+        # there would be no shard reports to merge.
+        if: ${{ !cancelled() && needs.test.result != 'skipped' }}
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
             - uses: actions/setup-node@v7
@@ -156,6 +162,7 @@ jobs:
             ${{ !cancelled() && needs.report.result == 'success'
             && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         permissions:
             pages: write
             id-token: write

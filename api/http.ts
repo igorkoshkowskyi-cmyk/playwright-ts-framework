@@ -1,13 +1,13 @@
 import type { APIResponse } from '@playwright/test';
 
-// What can be read safely from any error answer, even one that breaks the contract;
+// What can be read safely from any error response, even one that breaks the contract;
 // the contract itself is ApiErrorBody in types.ts and apiErrorSchema in schemas/apiErrorSchema.ts.
 interface LooseErrorBody {
     error?: { code?: string; message?: string; field?: string };
 }
 
 /**
- * A non-2xx answer, with the fields tests assert on: status, code and the invalid field.
+ * A non-2xx response, with the fields tests assert on: status, code and the invalid field.
  * The parsed body is kept as well, so a test can check it against the error schema.
  */
 export class ApiError extends Error {

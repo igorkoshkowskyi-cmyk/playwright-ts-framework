@@ -23,9 +23,9 @@ test.describe('Expenses', { tag: '@expenses' }, () => {
         const form = buildExpenseForm({ amount: '12.50' });
 
         const response = await test.step('add an expense through the form', async () => {
-            const answer = await app.expensesPage.add(form);
-            expect(answer.status()).toBe(201);
-            return answer;
+            const addResponse = await app.expensesPage.add(form);
+            expect(addResponse.status()).toBe(201);
+            return addResponse;
         });
 
         const created = (await response.json()) as Expense;

@@ -1,7 +1,7 @@
 import { expect, test } from '../../fixtures';
 
 // Tests tagged with a device run only in that device's project (grepInvert in the config).
-// Untagged tests run on every device through the same page object methods.
+// Tests without a device tag run on every device through the same page object methods.
 test.describe('Responsive layout', () => {
     // every test starts on the page with one expense listed, as a row or a card of this layout
     test.beforeEach(async ({ app, expense }) => {
@@ -11,7 +11,7 @@ test.describe('Responsive layout', () => {
 
     test(
         'web shows the form and the account area, expenses as a table',
-        { tag: '@web' },
+        { tag: ['@web', '@expenses'] },
         async ({ app }) => {
             const expenses = app.expensesPage;
 
@@ -26,7 +26,7 @@ test.describe('Responsive layout', () => {
 
     test(
         'tablet opens the form with New expense, expenses as a table',
-        { tag: '@tablet' },
+        { tag: ['@tablet', '@expenses'] },
         async ({ app }) => {
             const expenses = app.expensesPage;
 
@@ -46,7 +46,7 @@ test.describe('Responsive layout', () => {
 
     test(
         'mobile shows expenses as cards and the account area in the menu',
-        { tag: '@mobile' },
+        { tag: ['@mobile', '@expenses'] },
         async ({ app, account }) => {
             const expenses = app.expensesPage;
 
@@ -63,7 +63,7 @@ test.describe('Responsive layout', () => {
         }
     );
 
-    test('user signs out from any layout', async ({ app, page }) => {
+    test('user signs out from any layout', { tag: '@login' }, async ({ app, page }) => {
         await app.expensesPage.signOut();
 
         await expect(page).toHaveURL(/\/login$/);

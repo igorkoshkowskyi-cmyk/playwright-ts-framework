@@ -9,7 +9,7 @@ export interface CredentialsCase {
 const UNKNOWN_EMAIL = 'nobody@example.test';
 const WRONG_PASSWORD = 'Wrong-Passw0rd';
 
-/** Filled in but wrong: the request reaches the server, which answers 401. */
+/** Filled in but wrong: the request reaches the server, which responds with 401. */
 export const WRONG_CREDENTIALS: readonly CredentialsCase[] = [
     {
         name: 'an unknown email',
@@ -25,7 +25,7 @@ export const WRONG_CREDENTIALS: readonly CredentialsCase[] = [
     },
 ];
 
-/** Left empty: the page stops these before any request; the API answers them with 401 too. */
+/** Left empty: the page stops these before any request; the API responds to them with 401 too. */
 export const EMPTY_CREDENTIALS: readonly CredentialsCase[] = [
     {
         name: 'an empty email',

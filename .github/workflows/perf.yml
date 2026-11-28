@@ -15,6 +15,8 @@ on:
 jobs:
     k6:
         runs-on: ubuntu-latest
+        # the longest profile loads for two minutes
+        timeout-minutes: 15
         permissions:
             contents: read
             packages: read

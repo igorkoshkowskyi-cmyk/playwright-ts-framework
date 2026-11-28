@@ -1,7 +1,7 @@
 import { buildExpenseForm } from '../../data/builders';
 import { expect, test } from '../../fixtures';
 
-// Front-end behaviour on answers the real backend cannot easily give: page.route replaces them.
+// Front-end behaviour on responses the real backend cannot easily give: page.route replaces them.
 // Nothing here reaches the database, so the real end-to-end flows live in expenses.spec.ts.
 // No beforeEach that opens the page: a mock of the first list load must be set before it.
 test.describe('Expenses: mocked backend', { tag: '@expenses' }, () => {
@@ -17,7 +17,7 @@ test.describe('Expenses: mocked backend', { tag: '@expenses' }, () => {
         await app.expensesPage.openPage();
         const form = buildExpenseForm();
 
-        await test.step('submit the form, the server answers 500', async () => {
+        await test.step('submit the form, the server responds with 500', async () => {
             const response = await app.expensesPage.add(form);
             expect(response.status()).toBe(500);
         });

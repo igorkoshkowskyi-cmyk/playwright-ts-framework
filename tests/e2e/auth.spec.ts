@@ -28,7 +28,7 @@ test.describe('Sign in', { tag: '@login' }, () => {
         test(`${name} shows an error and creates no session`, async ({ app, account, context }) => {
             const { email, password } = credentials(account);
 
-            await test.step('sign in, the server answers 401', async () => {
+            await test.step('sign in, the server responds with 401', async () => {
                 const response = await app.loginPage.signIn(email, password);
                 expect(response.status()).toBe(401);
             });

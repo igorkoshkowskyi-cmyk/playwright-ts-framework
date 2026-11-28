@@ -12,6 +12,6 @@ export interface RegisterPage {
     openPage(): Promise<void>;
     fillRegisterData(user: RegisterInput): Promise<void>;
 
-    /** Submits the form and returns the API answer. */
+    /** Submits the form and returns the API response. */
     register(user: RegisterInput): Promise<Response>;
 }

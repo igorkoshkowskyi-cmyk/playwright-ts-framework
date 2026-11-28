@@ -31,8 +31,9 @@ function e2eProject(device: Device, profile: Project['use']): Project<DeviceOpti
 const reporters: ReporterDescription[] = isCI
     ? [
           ['list'],
+          // a failed test becomes an annotation on the workflow run, at its file and line
+          ['github'],
           ['blob'],
-          ['junit', { outputFile: 'test-results/junit.xml' }],
           ['allure-playwright'],
       ]
     : [['list'], ['html', { open: 'never' }], ['allure-playwright']];

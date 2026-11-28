@@ -17,7 +17,7 @@ export abstract class BasePage {
     }
 
     /**
-     * Clicks and returns the API answer the click causes, so the test can check the status
+     * Clicks and returns the API response the click causes, so the test can check the status
      * and the request the page sent. `path` is the exact URL path or a pattern for it.
      */
     protected async clickAndWaitForApi(
@@ -30,7 +30,7 @@ export abstract class BasePage {
             const pathMatches = typeof path === 'string' ? pathname === path : path.test(pathname);
             return pathMatches && response.request().method() === method;
         };
-        // The wait is subscribed before the click, so a fast answer is not missed.
+        // The wait is subscribed before the click, so a fast response is not missed.
         // If the click fails, Promise.all rejects at once and the wait is not left hanging.
         const [response] = await Promise.all([
             this.page.waitForResponse(isExpectedCall),

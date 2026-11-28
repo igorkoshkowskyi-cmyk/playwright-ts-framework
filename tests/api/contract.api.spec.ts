@@ -2,12 +2,12 @@ import { expenseListSchema, expenseSchema, userSchema } from '../../api/schemas'
 import { buildExpense, buildUser } from '../../data/builders';
 import { expect, test } from '../../fixtures';
 
-// Contract checks: each answer has exactly the shape of its JSON Schema in api/schemas/, with
-// no missing, extra or mistyped field. Error answers are held to the error schema as well: every
+// Contract checks: each response has exactly the shape of its JSON Schema in api/schemas/, with
+// no missing, extra or mistyped field. Error responses are held to the error schema as well: every
 // negative test checks it through toFailWithApiError.
 test.describe('API contract', () => {
     test(
-        'POST /api/auth/register answers with a user',
+        'POST /api/auth/register responds with a user',
         { tag: '@registration' },
         async ({ anonApi, db, cleanup }) => {
             const input = buildUser();
@@ -20,7 +20,7 @@ test.describe('API contract', () => {
     );
 
     test(
-        'POST /api/auth/login answers with a user',
+        'POST /api/auth/login responds with a user',
         { tag: '@login' },
         async ({ anonApi, account }) => {
             const user = await anonApi.auth.login(account);
@@ -29,14 +29,14 @@ test.describe('API contract', () => {
         }
     );
 
-    test('GET /api/me answers with a user', { tag: '@login' }, async ({ api }) => {
+    test('GET /api/me responds with a user', { tag: '@login' }, async ({ api }) => {
         const user = await api.auth.currentUser();
 
         expect(user).toMatchSchema(userSchema);
     });
 
     test(
-        'POST /api/expenses answers with an expense',
+        'POST /api/expenses responds with an expense',
         { tag: '@expenses' },
         async ({ api, cleanup }) => {
             const created = await api.expenses.create(buildExpense());
@@ -47,7 +47,7 @@ test.describe('API contract', () => {
     );
 
     test(
-        'GET /api/expenses/:id answers with an expense',
+        'GET /api/expenses/:id responds with an expense',
         { tag: '@expenses' },
         async ({ api, expense }) => {
             const found = await api.expenses.getById(expense.id);
@@ -57,7 +57,7 @@ test.describe('API contract', () => {
     );
 
     test(
-        'PUT /api/expenses/:id answers with an expense',
+        'PUT /api/expenses/:id responds with an expense',
         { tag: '@expenses' },
         async ({ api, expense }) => {
             const updated = await api.expenses.update(expense.id, buildExpense());
@@ -67,7 +67,7 @@ test.describe('API contract', () => {
     );
 
     test(
-        'GET /api/expenses answers with the items and their total',
+        'GET /api/expenses responds with the items and their total',
         { tag: '@expenses' },
         async ({ api, expense }) => {
             const list = await api.expenses.list();

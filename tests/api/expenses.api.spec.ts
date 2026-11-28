@@ -1,4 +1,5 @@
 import { buildExpense, buildUser } from '../../data/builders';
+import { EXPENSE_BY_ID_CALLS } from '../../data/cases/protectedCalls';
 import { expect, test } from '../../fixtures';
 
 test.describe('Expenses API', { tag: '@expenses' }, () => {
@@ -16,7 +17,7 @@ test.describe('Expenses API', { tag: '@expenses' }, () => {
             return expense;
         });
 
-        await test.step('the answer has the input, an id and a creation time', () => {
+        await test.step('the response has the input, an id and a creation time', () => {
             expect(created).toEqual({
                 ...input,
                 id: expect.any(Number),
@@ -49,7 +50,7 @@ test.describe('Expenses API', { tag: '@expenses' }, () => {
         const updated = await test.step('update the expense', () =>
             api.expenses.update(expense.id, changes));
 
-        await test.step('the answer and the database have the new values', async () => {
+        await test.step('the response and the database have the new values', async () => {
             expect(updated).toEqual({ ...changes, id: expense.id, createdAt: expense.createdAt });
             const row = await db.expenses.findById(expense.id);
             expect(row).toMatchObject({
@@ -77,16 +78,28 @@ test.describe('Expenses API', { tag: '@expenses' }, () => {
         );
     });
 
-    test('another user cannot read the expense', async ({ anonApi, db, cleanup, expense }) => {
-        await test.step('sign up as another user', async () => {
-            const stranger = buildUser();
-            // register signs anonApi in as the stranger
-            await anonApi.auth.register(stranger);
-            cleanup.add(() => db.users.deleteByEmail(stranger.email));
-        });
+    // data-driven: one test per call that takes an expense id, made by a signed-in user who does
+    // not own the expense; 404, not 403, so the API does not reveal that the expense exists
+    for (const { endpoint, call } of EXPENSE_BY_ID_CALLS) {
+        test(`another user gets 404 for ${endpoint}`, async ({
+            anonApi,
+            api,
+            db,
+            cleanup,
+            expense,
+        }) => {
+            await test.step('sign up as another user', async () => {
+                const stranger = buildUser();
+                // register signs anonApi in as the stranger
+                await anonApi.auth.register(stranger);
+                cleanup.add(() => db.users.deleteByEmail(stranger.email));
+            });
 
-        await test.step('the other user gets 404 for the expense', async () => {
-            await expect(anonApi.expenses.getById(expense.id)).toFailWithApiError(404, 'not_found');
+            await test.step('the call is rejected and the expense stays as it was', async () => {
+                await expect(call(anonApi, expense)).toFailWithApiError(404, 'not_found');
+                const stored = await api.expenses.getById(expense.id);
+                expect(stored).toEqual(expense);
+            });
         });
-    });
+    }
 });

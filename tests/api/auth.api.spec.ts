@@ -1,6 +1,6 @@
 import { buildUser } from '../../data/builders';
 import { PROTECTED_CALLS } from '../../data/cases/protectedCalls';
-import { INVALID_REGISTRATIONS } from '../../data/cases/registration';
+import { INVALID_REGISTRATIONS, VALID_REGISTRATIONS } from '../../data/cases/registration';
 import { EMPTY_CREDENTIALS, WRONG_CREDENTIALS } from '../../data/cases/signIn';
 import { expect, test } from '../../fixtures';
 
@@ -18,7 +18,7 @@ test.describe('Auth API: registration', { tag: '@registration' }, () => {
             return created;
         });
 
-        await test.step('the answer has the user without the password', () => {
+        await test.step('the response has the user without the password', () => {
             expect(user).toEqual({ id: expect.any(Number), email: input.email, name: input.name });
         });
 
@@ -51,10 +51,22 @@ test.describe('Auth API: registration', { tag: '@registration' }, () => {
             expect(row).toBeUndefined();
         });
     }
+
+    // data-driven: the same boundaries from the allowed side, each row must be accepted as it is
+    for (const { name, input } of VALID_REGISTRATIONS) {
+        test(`register accepts ${name}`, async ({ anonApi, db, cleanup }) => {
+            const user = buildUser(input);
+            cleanup.add(() => db.users.deleteByEmail(user.email));
+
+            const created = await anonApi.auth.register(user);
+
+            expect(created).toEqual({ id: expect.any(Number), email: user.email, name: user.name });
+        });
+    }
 });
 
 test.describe('Auth API: sign-in', { tag: '@login' }, () => {
-    // data-driven: every wrong or empty pair gets the same answer, so the API never tells
+    // data-driven: every wrong or empty pair gets the same response, so the API never tells
     // which part was wrong and cannot be used to find registered emails
     for (const { name, credentials } of [...WRONG_CREDENTIALS, ...EMPTY_CREDENTIALS]) {
         test(`login rejects ${name}`, async ({ anonApi, account }) => {
@@ -69,8 +81,10 @@ test.describe('Auth API: sign-in', { tag: '@login' }, () => {
 test.describe('Auth API: session required', () => {
     // data-driven: one test per protected endpoint, called without a session; each row carries
     // the tag of what its endpoint works with
-    for (const { endpoint, call } of PROTECTED_CALLS) {
-        test(`${endpoint} requires a session`, async ({ anonApi, api, expense }) => {
+    for (const { endpoint, tag, call } of PROTECTED_CALLS) {
+        // the rule reads only string literals; the ProtectedCallTag type checks this tag instead
+        // eslint-disable-next-line playwright/valid-test-tags
+        test(`${endpoint} requires a session`, { tag }, async ({ anonApi, api, expense }) => {
             await expect(call(anonApi, expense)).toFailWithApiError(401, 'unauthorized');
 
             // a rejected call must not have changed or deleted anything on the way

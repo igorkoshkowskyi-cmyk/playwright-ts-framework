@@ -42,7 +42,7 @@ export interface ExpensesPage {
 
     fillForm(form: ExpenseForm): Promise<void>;
 
-    /** Fills and submits the form, returns the API answer to the create call. */
+    /** Fills and submits the form, returns the API response to the create call. */
     add(form: ExpenseForm): Promise<Response>;
 
     delete(title: string): Promise<Response>;

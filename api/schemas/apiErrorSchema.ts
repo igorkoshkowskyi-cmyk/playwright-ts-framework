@@ -1,7 +1,7 @@
 import type { JSONSchemaType } from 'ajv';
 import type { ApiErrorBody } from '../types';
 
-/** The one error shape of the whole API; toFailWithApiError checks every error answer with it. */
+/** The one error shape of the whole API; toFailWithApiError checks every error response with it. */
 export const apiErrorSchema: JSONSchemaType<ApiErrorBody> = {
     type: 'object',
     properties: {
